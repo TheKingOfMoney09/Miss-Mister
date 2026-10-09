@@ -3,40 +3,82 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#08080d">
 <title>Rezultate — Miss &amp; Mister</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👑</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
 <style>
-body{margin:0;background:#0b0b10;color:#f5f2ea;font-family:system-ui,sans-serif;text-align:center}
-.wrap{max-width:900px;margin:0 auto;padding:24px}
-h1{font-size:2rem;margin:10px 0}
-.status{font-size:1.3rem;color:#a9a5b8;margin:40px 0}
-.win{display:inline-block;background:#1c1c22;border-radius:18px;padding:16px;margin:10px;min-width:220px}
-.win img{width:220px;height:260px;object-fit:cover;border-radius:12px;display:block}
-.win .n{font-size:1.3rem;font-weight:800;margin-top:10px}
-.win .t{color:#a9a5b8}
-h2{margin-top:30px;font-size:1.6rem}
+body{
+  background:
+    radial-gradient(1100px 500px at 50% -140px, rgba(233,185,73,.20), transparent 62%),
+    radial-gradient(800px 600px at 12% 110%, rgba(183,106,224,.12), transparent 60%),
+    radial-gradient(800px 600px at 88% 110%, rgba(90,169,230,.10), transparent 60%),
+    linear-gradient(#0d0d15,#060609);
+}
+.wrap{max-width:1100px;padding:34px 22px 60px}
+.status{font-family:var(--font-display);font-size:clamp(1.5rem,4.5vw,2.4rem);color:var(--mut);margin:12vh 0;text-align:center}
+h2.cat{
+  font-family:var(--font-display);font-size:clamp(1.7rem,5vw,2.6rem);margin:44px 0 6px;text-align:center;
+  background:linear-gradient(175deg,#fff6dd,var(--gold-hi) 40%,var(--gold) 62%,#8a6410);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.cat-sub{text-align:center;color:var(--mut);letter-spacing:.4em;font-size:.72rem;text-transform:uppercase;margin-bottom:20px}
+.crowns{display:flex;gap:26px;justify-content:center;flex-wrap:wrap}
+.win{
+  width:min(320px,84vw);border-radius:22px;overflow:hidden;position:relative;
+  background:#14141c;border:1px solid var(--line);
+  box-shadow:0 30px 80px rgba(0,0,0,.6),0 0 50px rgba(233,185,73,.14);
+  animation:rise .8s cubic-bezier(.2,1.1,.35,1);
+}
+@keyframes rise{0%{transform:translateY(46px);opacity:0}100%{transform:none;opacity:1}}
+.win img{width:100%;height:min(380px,52vh);object-fit:cover;display:block}
+.win .shade{position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(0,0,0,.88) 100%)}
+.win .cap{position:absolute;left:0;right:0;bottom:0;padding:18px;text-align:center}
+.win .crown{font-size:2rem;filter:drop-shadow(0 4px 12px rgba(233,185,73,.6))}
+.win .n{font-family:var(--font-display);font-size:1.7rem;font-weight:800;margin-top:4px;text-shadow:0 3px 14px #000}
+.win .t{color:var(--gold-hi);letter-spacing:.22em;font-size:.74rem;text-transform:uppercase;margin-top:6px}
+.confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden}
+.confetti i{position:absolute;top:-4vh;width:9px;height:15px;opacity:.9;animation:fall linear infinite}
+@keyframes fall{to{transform:translateY(112vh) rotate(720deg)}}
 </style>
 </head>
 <body>
+<div class="confetti" id="confetti"></div>
 <div class="wrap">
-  <h1>👑 Miss &amp; Mister — Rezultate</h1>
+  <header class="gala">
+    <div class="over">Balul Bobocilor</div>
+    <h1>Miss &amp; Mister</h1>
+    <div class="rule"><span>✦ ✦ ✦</span></div>
+  </header>
   <div id="out"><p class="status">Se încarcă…</p></div>
 </div>
 <script>
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
-function block(list){
+(function(){
+  var box=document.getElementById('confetti'),cols=['#e9b949','#f7dd8b','#b76ae0','#5aa9e6','#fff'];
+  for(var i=0;i<70;i++){var s=document.createElement('i');
+    s.style.left=(Math.random()*100)+'vw';s.style.background=cols[i%cols.length];
+    s.style.animationDuration=(4+Math.random()*5)+'s';s.style.animationDelay=(-Math.random()*8)+'s';
+    if(i%3===0)s.style.borderRadius='50%';
+    box.appendChild(s);}
+})();
+function block(list,emoji){
   if(!list) return '';
-  return list.map(function(w){
-    return '<div class="win">'+(w.photo?'<img src="'+esc(w.photo)+'" alt="">':'')+'<div class="n">'+esc(w.name)+'</div><div class="t">Nr. '+w.number+' · '+esc(w.team)+'</div></div>';
-  }).join('');
+  return '<div class="crowns">'+list.map(function(w){
+    return '<div class="win">'+(w.photo?'<img src="'+esc(w.photo)+'" alt="">':'')+'<div class="shade"></div><div class="cap"><div class="crown">'+emoji+'</div><div class="n">'+esc(w.name)+'</div><div class="t">Nr. '+w.number+' · '+esc(w.team)+'</div></div></div>';
+  }).join('')+'</div>';
 }
 function render(d){
-  var out=document.getElementById('out');
-  var h='';
+  var out=document.getElementById('out'),h='';
+  document.getElementById('confetti').style.display=(d.miss_revealed||d.mister_revealed)?'block':'none';
   if(d.miss_revealed||d.mister_revealed){
-    if(d.mister_revealed) h+='<h2>🤵 Mister</h2>'+block(d.winners.mister);
-    if(d.miss_revealed) h+='<h2>👑 Miss</h2>'+block(d.winners.miss);
+    if(d.mister_revealed) h+='<h2 class="cat">Mister</h2><div class="cat-sub">al serii</div>'+block(d.winners.mister,'🤵');
+    if(d.miss_revealed) h+='<h2 class="cat">Miss</h2><div class="cat-sub">a serii</div>'+block(d.winners.miss,'👑');
   } else {
-    h='<p class="status">'+(d.voting_open?'🗳️ Votarea e în curs…':'🕸️ Votarea s-a încheiat.')+'</p>';
+    h='<p class="status">'+(d.voting_open?'Votarea e în curs… ✦':'Votarea s-a încheiat. ✦')+'</p>';
   }
   out.innerHTML=h;
 }

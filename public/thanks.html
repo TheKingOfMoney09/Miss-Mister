@@ -3,12 +3,40 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#08080d">
 <title>Mulțumim!</title>
-<style>body{margin:0;background:#101014;color:#f5f2ea;font-family:system-ui,sans-serif;text-align:center;padding:60px 20px}h1{font-size:1.6rem}a{color:#e8b64c}</style>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👑</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
+<style>
+.stage{min-height:92vh;display:flex;align-items:center;justify-content:center;padding:24px 16px}
+.seal{
+  width:96px;height:96px;border-radius:50%;margin:0 auto;
+  display:flex;align-items:center;justify-content:center;font-size:2.6rem;
+  background:radial-gradient(circle at 35% 30%,var(--gold-hi),var(--gold) 55%,#8a6410);
+  box-shadow:0 0 60px rgba(233,185,73,.5), inset 0 2px 6px #fff9;
+  animation:seal .7s cubic-bezier(.2,1.4,.4,1);
+}
+@keyframes seal{0%{transform:scale(.3);opacity:0}100%{transform:scale(1);opacity:1}}
+h1{font-family:var(--font-display);font-size:clamp(1.9rem,7vw,2.6rem);margin:20px 0 6px;
+  background:linear-gradient(175deg,#fff6dd,var(--gold-hi) 40%,var(--gold) 60%,#8a6410);
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+p{color:var(--mut);line-height:1.6}
+.links{margin-top:26px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+a.btn{text-decoration:none;display:inline-block}
+</style>
 </head>
 <body>
-<h1>💛 Mulțumim pentru vot!</h1>
-<p>Votul tău a fost înregistrat.</p>
-<p><a href="/results">Vezi rezultatele la proiector →</a></p>
+<div class="stage"><div style="text-align:center;max-width:420px">
+  <div class="seal">✓</div>
+  <h1>Mulțumim!</h1>
+  <p>Votul tău a fost înregistrat.<br>Bucură-te de seară — câștigătorii se anunță la final. ✦</p>
+  <div class="links">
+    <a class="btn btn-gold btn-sm" href="/results" style="padding:12px 20px;font-size:.95rem">Vezi scena →</a>
+    <a class="btn btn-ghost btn-sm" href="/" style="padding:12px 20px;font-size:.95rem">Înapoi la vot</a>
+  </div>
+</div></div>
 </body>
 </html>

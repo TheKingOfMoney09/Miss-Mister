@@ -1,0 +1,97 @@
+/* Miss & Mister — premium dark gala theme (shared) */
+:root{
+  --bg0:#08080d;
+  --bg1:#101018;
+  --card:rgba(255,255,255,.045);
+  --card-solid:#16161e;
+  --line:rgba(233,185,73,.22);
+  --line-soft:rgba(255,255,255,.09);
+  --gold:#e9b949;
+  --gold-hi:#f7dd8b;
+  --gold-deep:#9a7418;
+  --violet:#b76ae0;
+  --blue:#5aa9e6;
+  --txt:#f8f4e9;
+  --mut:#b3adc2;
+  --danger:#e05c5c;
+  --green:#43c876;
+  --r:18px;
+  --font-display:"Playfair Display",Georgia,"Times New Roman",serif;
+  --font-body:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;color:var(--txt);font-family:var(--font-body);
+  background:
+    radial-gradient(900px 480px at 50% -120px, rgba(233,185,73,.14), transparent 60%),
+    radial-gradient(700px 500px at 85% 110%, rgba(183,106,224,.10), transparent 60%),
+    radial-gradient(700px 500px at 10% 110%, rgba(90,169,230,.08), transparent 60%),
+    linear-gradient(var(--bg1), var(--bg0));
+  background-attachment:fixed;
+  min-height:100vh;
+}
+.wrap{max-width:660px;margin:0 auto;padding:20px 14px 140px}
+
+/* ---------- gala header ---------- */
+.gala{text-align:center;margin:18px 0 6px}
+.gala .over{font-size:.68rem;font-weight:800;letter-spacing:.34em;color:var(--gold);text-transform:uppercase}
+.gala h1{
+  font-family:var(--font-display);font-weight:800;
+  font-size:clamp(2rem,8.5vw,2.9rem);line-height:1.05;margin:8px 0 4px;
+  background:linear-gradient(175deg,#fff6dd 10%,var(--gold-hi) 38%,var(--gold) 55%,#8a6410 90%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  text-shadow:0 0 44px rgba(233,185,73,.16);
+}
+.gala .rule{display:flex;align-items:center;gap:10px;justify-content:center;margin:10px auto 0;max-width:320px}
+.gala .rule::before,.gala .rule::after{content:"";height:1px;flex:1;background:linear-gradient(90deg,transparent,var(--line));}
+.gala .rule::after{background:linear-gradient(90deg,var(--line),transparent);}
+.gala .rule span{color:var(--gold);font-size:.8rem;letter-spacing:.2em}
+.gala .sub{color:var(--mut);font-size:.92rem;margin:8px 0 0}
+
+/* ---------- glass card ---------- */
+.glass{
+  background:var(--card);border:1px solid var(--line-soft);
+  border-radius:var(--r);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  box-shadow:0 18px 50px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06);
+}
+
+/* ---------- buttons ---------- */
+.btn{
+  appearance:none;border:1px solid var(--line-soft);cursor:pointer;
+  padding:13px 18px;border-radius:14px;font-weight:800;font-size:.95rem;
+  font-family:var(--font-body);color:var(--txt);background:rgba(255,255,255,.06);
+  transition:transform .12s ease, box-shadow .2s ease, filter .2s ease;
+}
+.btn:active{transform:scale(.97)}
+.btn-gold{
+  background:linear-gradient(180deg,var(--gold-hi),var(--gold) 55%,#c9962e);
+  color:#241a02;border:1px solid #ffe9a8;
+  box-shadow:0 8px 28px rgba(233,185,73,.35), inset 0 1px 0 #fff8;
+}
+.btn-gold:disabled{filter:grayscale(.8);opacity:.45;box-shadow:none}
+.btn-ghost{background:rgba(255,255,255,.05)}
+.btn-danger{background:linear-gradient(180deg,#e88,#b33131);color:#fff;border-color:#ffb3b3}
+.btn-green{background:linear-gradient(180deg,#6fe39a,#2f9e57);color:#06130b;border-color:#bff0d2}
+.btn-sm{padding:8px 12px;font-size:.82rem;border-radius:10px}
+
+/* ---------- forms ---------- */
+.field{margin:8px 0}
+.field label{display:block;font-size:.72rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--mut);margin:0 0 5px}
+.input,select.input{
+  width:100%;padding:12px 14px;border-radius:12px;color:var(--txt);
+  border:1px solid var(--line-soft);background:rgba(0,0,0,.4);font-size:.95rem;font-family:var(--font-body);
+}
+.input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(233,185,73,.18)}
+
+/* ---------- status / misc ---------- */
+.err{
+  display:none;background:linear-gradient(180deg,rgba(224,92,92,.22),rgba(224,92,92,.12));
+  border:1px solid rgba(224,92,92,.5);border-radius:12px;padding:12px;margin:12px 0;text-align:center;
+}
+.dot{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:7px;box-shadow:0 0 10px currentColor}
+.mut{color:var(--mut)}
+.gold-t{color:var(--gold)} .blue-t{color:var(--blue)}
+
+/* thin scrollbar for desktop */
+::-webkit-scrollbar{width:10px}::-webkit-scrollbar-thumb{background:#2c2c38;border-radius:8px}

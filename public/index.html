@@ -3,55 +3,86 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#08080d">
 <title>Miss &amp; Mister — Votează</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👑</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
 <style>
-:root{--bg:#101014;--card:#1c1c22;--gold:#e8b64c;--blue:#5aa9e6;--txt:#f5f2ea;--mut:#a9a5b8}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
-.wrap{max-width:640px;margin:0 auto;padding:12px 12px 130px}
-h1{font-size:1.4rem;text-align:center;margin:14px 0 2px}
-.sub{text-align:center;color:var(--mut);margin:0 0 4px;font-size:.95rem}
-.legend{display:flex;justify-content:space-between;max-width:640px;margin:10px 2px 0;font-size:.8rem;font-weight:800;letter-spacing:.04em}
+.legend{display:flex;justify-content:space-between;margin:16px 2px 0;font-size:.72rem;font-weight:800;letter-spacing:.18em}
 .legend .l{color:var(--blue)}.legend .r{color:var(--gold)}
-.team{margin:14px 0 4px;text-align:center}
-.team .tname{display:inline-block;background:#26262f;border:1px solid #3a3a46;border-radius:999px;padding:5px 16px;font-weight:800;font-size:.95rem}
-.team .tnum{color:var(--mut);font-size:.78rem;margin-top:2px}
-.duo{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.card{background:var(--card);border:3px solid transparent;border-radius:14px;overflow:hidden;cursor:pointer;-webkit-tap-highlight-color:transparent;position:relative}
-.card img{width:100%;height:170px;object-fit:cover;display:block;background:#000}
-.card .n{padding:8px 8px 10px;font-weight:700;font-size:.92rem;text-align:center}
-.card.boy.sel{border-color:var(--blue);box-shadow:0 0 14px #5aa9e677}
-.card.girl.sel{border-color:var(--gold);box-shadow:0 0 14px #e8b64c77}
-.badge{position:absolute;top:6px;font-size:.68rem;font-weight:800;border-radius:8px;padding:2px 8px;background:#000000aa}
-.badge.b{left:6px;color:var(--blue)}.badge.g{right:6px;color:var(--gold)}
-.tick{position:absolute;bottom:52px;right:6px;background:var(--gold);color:#000;font-weight:900;border-radius:50%;width:28px;height:28px;display:none;align-items:center;justify-content:center}
-.card.girl.sel .tick{display:flex;background:var(--gold)}
-.card.boy.sel .tick{display:flex;background:var(--blue);color:#fff}
-.bar{position:fixed;bottom:0;left:0;right:0;background:#16161cf2;border-top:1px solid #333;padding:10px}
-.bar .in{max-width:640px;margin:0 auto}
-#pick{text-align:center;font-size:.88rem;color:var(--mut);margin-bottom:8px}
+.hint{text-align:center;color:var(--mut);font-size:.84rem;margin:10px 6px 0;line-height:1.5}
+.hint b.b{color:var(--blue)}.hint b.g{color:var(--gold)}
+.team{margin:20px 0 6px;text-align:center}
+.team .tname{
+  display:inline-block;font-family:var(--font-display);font-weight:700;font-size:1.05rem;letter-spacing:.12em;text-transform:uppercase;
+  padding:7px 22px;border-radius:999px;color:var(--gold-hi);
+  background:rgba(233,185,73,.08);border:1px solid var(--line);
+  box-shadow:0 4px 18px rgba(233,185,73,.12), inset 0 1px 0 rgba(255,255,255,.08);
+}
+.team .tnum{color:var(--mut);font-size:.74rem;letter-spacing:.28em;margin-top:5px;text-transform:uppercase}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.card{
+  position:relative;border-radius:var(--r);overflow:hidden;cursor:pointer;
+  background:var(--card-solid);border:1px solid var(--line-soft);
+  -webkit-tap-highlight-color:transparent;
+  transition:transform .15s ease, border-color .2s ease, box-shadow .25s ease;
+}
+.card:active{transform:scale(.975)}
+.card img{width:100%;height:190px;object-fit:cover;display:block;background:#000}
+.card .shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.28) 0%,transparent 30%,transparent 52%,rgba(0,0,0,.82) 100%);pointer-events:none}
+.card .n{
+  position:absolute;left:0;right:0;bottom:0;padding:26px 10px 10px;
+  font-weight:700;font-size:.92rem;text-align:center;text-shadow:0 2px 8px #000;
+}
+.badge{
+  position:absolute;top:8px;font-size:.64rem;font-weight:800;letter-spacing:.14em;
+  border-radius:999px;padding:4px 10px;background:rgba(0,0,0,.62);border:1px solid var(--line-soft);
+  backdrop-filter:blur(6px);z-index:2;
+}
+.badge.b{left:8px;color:var(--blue)}.badge.g{right:8px;color:var(--gold)}
+.card.boy.sel{border-color:var(--blue);box-shadow:0 0 0 1px var(--blue),0 0 26px rgba(90,169,230,.45)}
+.card.girl.sel{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold),0 0 26px rgba(233,185,73,.45)}
+.tick{
+  position:absolute;top:8px;width:30px;height:30px;border-radius:50%;z-index:2;
+  display:none;align-items:center;justify-content:center;font-weight:900;font-size:1rem;color:#08131f;
+  background:linear-gradient(180deg,#aee0ff,var(--blue));box-shadow:0 4px 14px rgba(90,169,230,.6);
+}
+.card.boy .tick{right:8px}
+.card.girl .tick{left:8px;background:linear-gradient(180deg,var(--gold-hi),var(--gold));box-shadow:0 4px 14px rgba(233,185,73,.6)}
+.card.sel .tick{display:flex;animation:pop .25s ease}
+@keyframes pop{0%{transform:scale(.4)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
+.bar{position:fixed;bottom:0;left:0;right:0;padding:12px 12px calc(12px + env(safe-area-inset-bottom));
+  background:rgba(10,10,15,.86);border-top:1px solid var(--line-soft);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.bar .in{max-width:660px;margin:0 auto}
+#pick{text-align:center;font-size:.9rem;color:var(--mut);margin-bottom:9px}
 #pick b.b{color:var(--blue)}#pick b.g{color:var(--gold)}
-#voteBtn{width:100%;padding:15px;border:0;border-radius:12px;font-size:1.05rem;font-weight:800;background:var(--gold);color:#201500}
-#voteBtn:disabled{filter:grayscale(1);opacity:.45}
-#msg{text-align:center;padding:30px 10px;font-size:1.1rem}
-.err{background:#5b1a1a;border-radius:10px;padding:10px;margin:10px 0;text-align:center;display:none}
-.hint{text-align:center;color:var(--mut);font-size:.82rem;margin:8px 0 0}
+#voteBtn{width:100%;padding:16px;font-size:1.06rem}
+#msg{text-align:center;padding:40px 10px;font-size:1.05rem;color:var(--mut);font-family:var(--font-display)}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>👑 Miss &amp; Mister</h1>
-  <p class="sub">Balul Bobocilor — alege un Mister și un Miss</p>
+  <header class="gala">
+    <div class="over">Balul Bobocilor</div>
+    <h1>Miss &amp; Mister</h1>
+    <div class="rule"><span>✦ ✦ ✦</span></div>
+    <p class="sub">Alege un Mister și un Miss — seara decide.</p>
+  </header>
   <div class="err" id="err"></div>
   <div id="msg" style="display:none"></div>
   <div id="list" style="display:none">
-    <div class="legend"><span class="l">🤵 MISTER — băiatul</span><span class="r">fata — MISS 👑</span></div>
-    <p class="hint">Apasă pe <b style="color:var(--blue)">stânga</b> pentru Mister și pe <b style="color:var(--gold)">dreapta</b> pentru Miss — pot fi din echipe diferite.</p>
+    <div class="legend"><span class="l">🤵 Mister</span><span class="r">Miss 👑</span></div>
+    <p class="hint">Apasă pe <b class="b">stânga</b> pentru Mister și pe <b class="g">dreapta</b> pentru Miss — pot fi din echipe diferite.</p>
     <div id="teams"></div>
   </div>
 </div>
 <div class="bar" id="bar" style="display:none"><div class="in">
   <div id="pick">—</div>
-  <button id="voteBtn" disabled>Votează</button>
+  <button id="voteBtn" class="btn btn-gold" disabled>Votează ✦</button>
 </div></div>
 <script>
 // device token triple-store: cookie (server, httpOnly) + localStorage + IndexedDB
@@ -74,9 +105,9 @@ function personCard(c, side){
   d.className='card '+side; d.dataset.id=c.id;
   var img = side==='boy'?c.boy_photo:c.girl_photo;
   var name = side==='boy'?c.boy_name:c.girl_name;
-  d.innerHTML='<span class="badge '+(side==='boy'?'b':'g')+'">'+(side==='boy'?'🤵':'👑')+'</span>'+
-    (img?'<img loading="lazy" src="'+esc(img)+'" alt="">':'<div style="height:170px"></div>')+
-    '<div class="tick">✓</div><div class="n">'+esc(name)+'</div>';
+  d.innerHTML='<span class="badge '+(side==='boy'?'b':'g')+'">'+(side==='boy'?'🤵 MISTER':'MISS 👑')+'</span>'+
+    (img?'<img loading="lazy" src="'+esc(img)+'" alt="">':'<div style="height:190px"></div>')+
+    '<div class="shade"></div><div class="tick">✓</div><div class="n">'+esc(name)+'</div>';
   d.onclick=function(){ if(side==='boy'){boyPick=c.id;}else{girlPick=c.id;} paint(); };
   return d;
 }
@@ -86,7 +117,7 @@ function paint(){
   document.getElementById('voteBtn').disabled=!(boyPick&&girlPick);
   var bn=state?state.couples.find(function(c){return c.id===boyPick;}):null;
   var gn=state?state.couples.find(function(c){return c.id===girlPick;}):null;
-  document.getElementById('pick').innerHTML='🤵 <b class="b">'+esc(bn?bn.boy_name:'—')+'</b> + 👑 <b class="g">'+esc(gn?gn.girl_name:'—')+'</b>';
+  document.getElementById('pick').innerHTML='🤵 <b class="b">'+esc(bn?bn.boy_name:'—')+'</b> &nbsp;+&nbsp; 👑 <b class="g">'+esc(gn?gn.girl_name:'—')+'</b>';
 }
 async function load(){
   // Server is source of truth: if admin "forgot" this device, let it vote again.
@@ -100,7 +131,7 @@ async function load(){
   state=await r.json();
   if(!state.voting_open){
     document.getElementById('msg').style.display='block';
-    document.getElementById('msg').textContent='🕸️ Votarea e închisă. Mulțumim!';
+    document.getElementById('msg').textContent='Votarea e închisă — vă mulțumim pentru seara magică. ✦';
     return;
   }
   document.getElementById('list').style.display='block';
@@ -108,7 +139,7 @@ async function load(){
   var box=document.getElementById('teams');
   state.couples.forEach(function(c){
     var t=document.createElement('div'); t.className='team';
-    t.innerHTML='<span class="tname">'+esc(c.team)+'</span><div class="tnum">Nr. '+c.number+'</div>';
+    t.innerHTML='<span class="tname">'+esc(c.team)+'</span><div class="tnum">perechea nr. '+c.number+'</div>';
     box.appendChild(t);
     var duo=document.createElement('div'); duo.className='duo';
     duo.appendChild(personCard(c,'boy'));
@@ -118,15 +149,15 @@ async function load(){
   paint();
 }
 document.getElementById('voteBtn').onclick=async function(){
-  var b=this; b.disabled=true;
+  var b=this; b.disabled=true; b.textContent='Se trimite…';
   try{
     var r=await fetch('/api/vote',{method:'POST',headers:{'Content-Type':'application/json','X-Device-Token':window.__mmDevice||''},body:JSON.stringify({boy_couple_id:boyPick,girl_couple_id:girlPick,device_token:window.__mmDevice})});
     var j=await r.json().catch(function(){return{};});
     if(r.status===409){try{localStorage.setItem('mm_voted','1');}catch(e){} location.replace('/thanks');return;}
-    if(!r.ok){showErr(j.error||'Eroare la vot.');b.disabled=false;return;}
+    if(!r.ok){showErr(j.error||'Eroare la vot.');b.disabled=false;b.textContent='Votează ✦';return;}
     try{localStorage.setItem('mm_voted','1');}catch(e){}
     location.replace('/thanks');
-  }catch(e){showErr('Eroare de rețea.');b.disabled=false;}
+  }catch(e){showErr('Eroare de rețea.');b.disabled=false;b.textContent='Votează ✦';}
 };
 load();
 </script>

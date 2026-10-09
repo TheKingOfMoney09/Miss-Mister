@@ -3,37 +3,61 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#08080d">
 <title>Admin — Miss &amp; Mister</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎛️</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
 <style>
-body{margin:0;background:#14141a;color:#f2efe8;font-family:system-ui,sans-serif}
-.wrap{max-width:760px;margin:0 auto;padding:14px 14px 60px}
-.card{background:#1e1e26;border-radius:12px;padding:12px;margin:10px 0}
-button{padding:10px 14px;border:0;border-radius:10px;font-weight:700;margin:4px 6px 4px 0;cursor:pointer}
-.on{background:#3fae5a;color:#fff}.off{background:#555}.danger{background:#b33131;color:#fff}.gold{background:#e8b64c}
-.bar-row{display:flex;align-items:center;gap:8px;margin:5px 0;font-size:.9rem}
-.bar{height:14px;background:#333;border-radius:7px;flex:1;overflow:hidden}
-.bar>i{display:block;height:100%;background:linear-gradient(90deg,#b76ae0,#e8b64c)}
-input,select{padding:9px;border-radius:8px;border:1px solid #444;background:#111;color:#fff;margin:3px 0;width:100%;box-sizing:border-box}
-label{font-size:.8rem;color:#aaa}
-.dot{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-img.th{width:100%;height:120px;object-fit:cover;border-radius:8px}
+.wrap{max-width:780px;padding:20px 14px 70px}
+.card{background:var(--card);border:1px solid var(--line-soft);border-radius:var(--r);padding:16px;margin:12px 0;
+  box-shadow:0 18px 50px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.05)}
+.card h3{font-family:var(--font-display);font-size:1.15rem;margin:0 0 10px;color:var(--gold-hi);letter-spacing:.04em}
+button{font-family:var(--font-body);padding:11px 15px;border:1px solid var(--line-soft);border-radius:12px;font-weight:800;margin:4px 6px 4px 0;cursor:pointer;color:var(--txt);background:rgba(255,255,255,.06);transition:transform .12s ease,filter .2s}
+button:active{transform:scale(.96)}
+.on{background:linear-gradient(180deg,#6fe39a,#2f9e57);color:#06130b;border-color:#bff0d2}
+.off{background:rgba(255,255,255,.07)}
+.danger{background:linear-gradient(180deg,#e88,#a82e2e);color:#fff;border-color:#ffb3b3}
+.gold{background:linear-gradient(180deg,var(--gold-hi),var(--gold) 55%,#c9962e);color:#241a02;border-color:#ffe9a8;box-shadow:0 6px 22px rgba(233,185,73,.3)}
+.hero{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.hero .bignum{font-family:var(--font-display);font-size:2.6rem;font-weight:800;line-height:1;
+  background:linear-gradient(175deg,#fff6dd,var(--gold-hi) 45%,var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero small{color:var(--mut);letter-spacing:.2em;text-transform:uppercase;font-size:.68rem}
+.bar-row{display:flex;align-items:center;gap:9px;margin:7px 0;font-size:.88rem}
+.bar-row .who{min-width:0;flex:0 0 168px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar{height:14px;background:rgba(255,255,255,.08);border-radius:999px;flex:1;overflow:hidden}
+.bar>i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--violet),var(--gold));box-shadow:0 0 12px rgba(233,185,73,.35);transition:width .6s ease}
+.bar-row b{min-width:34px;text-align:right}.bar-row small{color:var(--mut);min-width:44px;text-align:right}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+img.th{width:100%;height:130px;object-fit:cover;border-radius:12px;border:1px solid var(--line-soft)}
+label.flabel{display:block;font-size:.68rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--mut);margin:8px 0 4px}
+input[type=text],input[type=password],input[type=file]{width:100%;padding:11px 13px;border-radius:12px;border:1px solid var(--line-soft);background:rgba(0,0,0,.42);color:#fff;margin:3px 0;font-size:.9rem;box-sizing:border-box}
+input:focus{outline:none;border-color:var(--gold)}
+.sub-card{background:rgba(0,0,0,.3);border:1px solid var(--line-soft);border-radius:14px;padding:12px;margin:10px 0}
+h1.page{font-family:var(--font-display);font-size:1.7rem;margin:14px 0 2px}
+.page-sub{color:var(--mut);font-size:.88rem;margin:0 0 6px}
 </style>
 </head>
 <body>
 <div class="wrap">
-<h1>🎛️ Admin</h1>
+<h1 class="page">🎛️ Consola Admin</h1>
+<p class="page-sub">Miss &amp; Mister · Balul Bobocilor</p>
 <div class="card" id="loginBox">
-  <label>Parola admin</label>
-  <input type="password" id="pw" placeholder="parola">
-  <button class="gold" onclick="login()">Autentificare</button>
-  <div id="loginErr" style="color:#ff8a8a"></div>
+  <label class="flabel">Parola admin</label>
+  <input type="password" id="pw" placeholder="••••••••">
+  <div style="margin-top:10px"><button class="gold" onclick="login()">Autentificare</button></div>
+  <div id="loginErr" style="color:#ff9a9a;margin-top:6px"></div>
 </div>
 <div id="dash" style="display:none">
-  <div class="card">
-    <div><span id="dotV" class="dot"></span><b id="vStatus">—</b> · Total voturi: <b id="total">0</b></div>
-    <div style="color:#aaa;font-size:.85rem" id="reveal">—</div>
-    <div style="color:#aaa;font-size:.85rem">Voturi/min (ultimele 10 min): <span id="pm">—</span></div>
+  <div class="card hero">
+    <div><div class="bignum" id="total">0</div><small>voturi totale</small></div>
+    <div style="flex:1;min-width:180px">
+      <div><span id="dotV" class="dot"></span><b id="vStatus">—</b></div>
+      <div class="mut" style="font-size:.85rem;margin-top:4px" id="reveal">—</div>
+      <div class="mut" style="font-size:.82rem;margin-top:4px">Voturi/min (ultimele 10): <span id="pm">—</span></div>
+    </div>
   </div>
   <div class="card">
     <button id="btnVote" class="on" onclick="toggleVoting()">Deschide/Închide votarea</button>
@@ -44,8 +68,8 @@ img.th{width:100%;height:120px;object-fit:cover;border-radius:8px}
   </div>
   <div class="card"><h3>🤵 Mister</h3><div id="boys"></div></div>
   <div class="card"><h3>👑 Miss</h3><div id="girls"></div></div>
-  <div class="card"><h3>🗳️ Voturi recente <button class="off" style="padding:6px 10px" onclick="loadVotes()">Reîmprospătează</button></h3>
-    <div style="color:#aaa;font-size:.82rem;margin-bottom:6px">Șterge un vot ca dispozitivul respectiv să poată vota din nou („uită cine a votat").</div>
+  <div class="card"><h3>🗳️ Voturi recente <button class="off" style="padding:6px 12px;font-size:.78rem" onclick="loadVotes()">Reîmprospătează</button></h3>
+    <div class="mut" style="font-size:.82rem;margin-bottom:8px">Șterge un vot ca dispozitivul respectiv să poată vota din nou („uită cine a votat").</div>
     <div id="votes"></div></div>
   <div class="card"><h3>✏️ Editează cupluri</h3><div id="couples"></div></div>
   <div class="card"><button class="off" onclick="logout()">Ieși</button></div>
@@ -67,13 +91,15 @@ async function api(u,m,b){
   return r.json();
 }
 function row(r){
-  return '<div class="bar-row"><span style="min-width:150px">'+esc(r.name)+' <small>(nr.'+r.number+')</small></span><div class="bar"><i style="width:'+Math.min(100,r.pct)+'%"></i></div><b>'+r.votes+'</b><small>'+r.pct+'%</small></div>';
+  return '<div class="bar-row"><span class="who">'+esc(r.name)+' <span class="mut">nr.'+r.number+'</span></span><div class="bar"><i style="width:'+Math.min(100,r.pct)+'%"></i></div><b>'+r.votes+'</b><small>'+r.pct+'%</small></div>';
 }
 function render(s){
   votingOpen=s.voting_open;
   document.getElementById('total').textContent=s.total;
   document.getElementById('vStatus').textContent=s.voting_open?'VOTARE DESCHISĂ':'VOTARE ÎNCHISĂ';
-  document.getElementById('dotV').style.background=s.voting_open?'#3fae5a':'#b33131';
+  var dot=document.getElementById('dotV');
+  dot.style.background=s.voting_open?'var(--green)':'var(--danger)';
+  dot.style.color=s.voting_open?'var(--green)':'var(--danger)';
   document.getElementById('reveal').textContent='Miss: '+(s.miss_revealed?'dezvăluit':'ascuns')+' · Mister: '+(s.mister_revealed?'dezvăluit':'ascuns');
   document.getElementById('pm').textContent=(s.perMinute||[]).join(' ');
   document.getElementById('boys').innerHTML=s.boys.map(row).join('');
@@ -93,8 +119,8 @@ async function loadVotes(){
   var vs=await api('/api/admin/votes').catch(function(){return[];});
   document.getElementById('votes').innerHTML=vs.length?vs.map(function(v){
     var t=new Date(v.created_at);var hh=('0'+t.getHours()).slice(-2),mm=('0'+t.getMinutes()).slice(-2);
-    return '<div class="bar-row"><span style="min-width:0;flex:1">'+esc(v.boy_name)+' (nr.'+v.boy_number+') + '+esc(v.girl_name)+' (nr.'+v.girl_number+') <small>· '+esc(v.device_short)+'… · '+hh+':'+mm+'</small></span><button class="danger" style="padding:6px 10px" onclick="forgetVote('+v.id+')">Uită</button></div>';
-  }).join(''):'<div style="color:#aaa">Niciun vot încă.</div>';
+    return '<div class="bar-row"><span class="who" style="flex:1">'+esc(v.boy_name)+' (nr.'+v.boy_number+') + '+esc(v.girl_name)+' (nr.'+v.girl_number+') <span class="mut">· '+esc(v.device_short)+'… · '+hh+':'+mm+'</span></span><button class="danger" style="padding:6px 12px;font-size:.78rem" onclick="forgetVote('+v.id+')">Uită</button></div>';
+  }).join(''):'<div class="mut">Niciun vot încă.</div>';
 }
 async function forgetVote(id){
   if(!confirm('Uiți acest vot? Dispozitivul va putea vota din nou.'))return;
@@ -114,13 +140,13 @@ async function logout(){await fetch('/api/admin/logout',{method:'POST'});locatio
 async function loadCouples(){
   var cs=await api('/api/admin/couples');
   document.getElementById('couples').innerHTML=cs.map(function(c){
-    return '<div class="card" style="background:#14141c">Nr.'+c.number+' — '+esc(c.team)+
-    '<div class="grid2"><div><img class="th" src="'+esc(c.boy_photo)+'"><label>Băiat</label><input id="b'+c.id+'" value="'+esc(c.boy_name)+'"></div>'+
-    '<div><img class="th" src="'+esc(c.girl_photo)+'"><label>Fată</label><input id="g'+c.id+'" value="'+esc(c.girl_name)+'"></div></div>'+
-    '<label>Echipă</label><input id="t'+c.id+'" value="'+esc(c.team)+'">'+
-    '<button class="gold" onclick="saveC('+c.id+')">Salvează</button> '+
-    '<label>Băiat poză nouă</label><input type="file" id="fb'+c.id+'" accept="image/*"> <button onclick="upPhoto('+c.id+',\'boy\')">Încarcă băiat</button>'+
-    '<label>Fată poză nouă</label><input type="file" id="fg'+c.id+'" accept="image/*"> <button onclick="upPhoto('+c.id+',\'girl\')">Încarcă fată</button></div>';
+    return '<div class="sub-card">Nr.'+c.number+' — '+esc(c.team)+
+    '<div class="grid2"><div><img class="th" src="'+esc(c.boy_photo)+'"><label class="flabel">Băiat</label><input type="text" id="b'+c.id+'" value="'+esc(c.boy_name)+'"></div>'+
+    '<div><img class="th" src="'+esc(c.girl_photo)+'"><label class="flabel">Fată</label><input type="text" id="g'+c.id+'" value="'+esc(c.girl_name)+'"></div></div>'+
+    '<label class="flabel">Echipă</label><input type="text" id="t'+c.id+'" value="'+esc(c.team)+'">'+
+    '<div style="margin-top:8px"><button class="gold" onclick="saveC('+c.id+')">Salvează</button></div> '+
+    '<label class="flabel">Poză nouă băiat</label><input type="file" id="fb'+c.id+'" accept="image/*"> <button onclick="upPhoto('+c.id+',\'boy\')">Încarcă băiat</button>'+
+    '<label class="flabel">Poză nouă fată</label><input type="file" id="fg'+c.id+'" accept="image/*"> <button onclick="upPhoto('+c.id+',\'girl\')">Încarcă fată</button></div>';
   }).join('');
 }
 async function saveC(id){
