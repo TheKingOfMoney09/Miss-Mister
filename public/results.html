@@ -27,6 +27,8 @@ h2.cat{
 }
 .cat-sub{text-align:center;color:var(--mut);letter-spacing:.4em;font-size:.72rem;text-transform:uppercase;margin-bottom:20px}
 .crowns{display:flex;gap:26px;justify-content:center;flex-wrap:wrap}
+.cats{display:grid;gap:8px 32px;grid-template-columns:1fr}
+@media(min-width:900px){.cats.two{grid-template-columns:1fr 1fr}.cats.two section:first-child{border-right:1px solid var(--line-soft)}}
 .win{
   width:min(320px,84vw);border-radius:22px;overflow:hidden;position:relative;
   background:#14141c;border:1px solid var(--line);
@@ -75,8 +77,11 @@ function render(d){
   var out=document.getElementById('out'),h='';
   document.getElementById('confetti').style.display=(d.miss_revealed||d.mister_revealed)?'block':'none';
   if(d.miss_revealed||d.mister_revealed){
-    if(d.mister_revealed) h+='<h2 class="cat">Mister</h2><div class="cat-sub">al serii</div>'+block(d.winners.mister,'🤵');
-    if(d.miss_revealed) h+='<h2 class="cat">Miss</h2><div class="cat-sub">a serii</div>'+block(d.winners.miss,'👑');
+    var sections='';
+    if(d.mister_revealed) sections+='<section><h2 class="cat">Mister</h2><div class="cat-sub">al serii</div>'+block(d.winners.mister,'🤵')+'</section>';
+    if(d.miss_revealed) sections+='<section><h2 class="cat">Miss</h2><div class="cat-sub">a serii</div>'+block(d.winners.miss,'👑')+'</section>';
+    var two=(d.mister_revealed&&d.miss_revealed)?' two':'';
+    h='<div class="cats'+two+'">'+sections+'</div>';
   } else {
     h='<p class="status">'+(d.voting_open?'Votarea e în curs… ✦':'Votarea s-a încheiat. ✦')+'</p>';
   }
