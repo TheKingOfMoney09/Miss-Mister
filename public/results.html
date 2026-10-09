@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rezultate — Miss &amp; Mister</title>
+<style>
+body{margin:0;background:#0b0b10;color:#f5f2ea;font-family:system-ui,sans-serif;text-align:center}
+.wrap{max-width:900px;margin:0 auto;padding:24px}
+h1{font-size:2rem;margin:10px 0}
+.status{font-size:1.3rem;color:#a9a5b8;margin:40px 0}
+.win{display:inline-block;background:#1c1c22;border-radius:18px;padding:16px;margin:10px;min-width:220px}
+.win img{width:220px;height:260px;object-fit:cover;border-radius:12px;display:block}
+.win .n{font-size:1.3rem;font-weight:800;margin-top:10px}
+.win .t{color:#a9a5b8}
+h2{margin-top:30px;font-size:1.6rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>👑 Miss &amp; Mister — Rezultate</h1>
+  <div id="out"><p class="status">Se încarcă…</p></div>
+</div>
+<script>
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function block(list){
+  if(!list) return '';
+  return list.map(function(w){
+    return '<div class="win">'+(w.photo?'<img src="'+esc(w.photo)+'" alt="">':'')+'<div class="n">'+esc(w.name)+'</div><div class="t">Nr. '+w.number+' · '+esc(w.team)+'</div></div>';
+  }).join('');
+}
+function render(d){
+  var out=document.getElementById('out');
+  var h='';
+  if(d.miss_revealed||d.mister_revealed){
+    if(d.mister_revealed) h+='<h2>🤵 Mister</h2>'+block(d.winners.mister);
+    if(d.miss_revealed) h+='<h2>👑 Miss</h2>'+block(d.winners.miss);
+  } else {
+    h='<p class="status">'+(d.voting_open?'🗳️ Votarea e în curs…':'🕸️ Votarea s-a încheiat.')+'</p>';
+  }
+  out.innerHTML=h;
+}
+async function load(){var r=await fetch('/api/results');render(await r.json());}
+load();
+var es=new EventSource('/api/events');
+es.addEventListener('state',function(e){render(JSON.parse(e.data));});
+</script>
+</body>
+</html>

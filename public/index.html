@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Miss &amp; Mister — Votează</title>
+<style>
+:root{--bg:#101014;--card:#1c1c22;--acc:#e8b64c;--acc2:#b76ae0;--txt:#f5f2ea;--mut:#a9a5b8}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+.wrap{max-width:640px;margin:0 auto;padding:12px 12px 120px}
+h1{font-size:1.4rem;text-align:center;margin:14px 0 2px}
+.sub{text-align:center;color:var(--mut);margin:0 0 12px;font-size:.95rem}
+h2{font-size:1.1rem;margin:18px 4px 8px;display:flex;align-items:center;gap:8px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(min-width:520px){.grid{grid-template-columns:1fr 1fr 1fr}}
+.card{background:var(--card);border:2px solid transparent;border-radius:14px;overflow:hidden;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.card img{width:100%;height:150px;object-fit:cover;display:block;background:#000}
+.card .n{padding:8px 8px 2px;font-weight:700;font-size:.92rem}
+.card .t{padding:0 8px 8px;color:var(--mut);font-size:.78rem}
+.card.sel-mister{border-color:var(--acc2)}.card.sel-miss{border-color:var(--acc)}
+.num{display:inline-block;background:#00000088;border-radius:8px;padding:1px 7px;font-size:.75rem;margin:6px 0 0 6px;position:absolute}
+.pic{position:relative}
+.bar{position:fixed;bottom:0;left:0;right:0;background:#16161cee;border-top:1px solid #333;padding:10px}
+.bar .in{max-width:640px;margin:0 auto;display:flex;gap:10px;align-items:center}
+#voteBtn{flex:1;padding:15px;border:0;border-radius:12px;font-size:1.05rem;font-weight:800;background:var(--acc);color:#201500}
+#voteBtn:disabled{filter:grayscale(1);opacity:.45}
+#msg{text-align:center;padding:30px 10px;font-size:1.1rem}
+.err{background:#5b1a1a;border-radius:10px;padding:10px;margin:10px 0;text-align:center;display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>👑 Miss &amp; Mister</h1>
+  <p class="sub">Balul Bobocilor — alege un Mister și un Miss</p>
+  <div class="err" id="err"></div>
+  <div id="msg" style="display:none"></div>
+  <div id="form" style="display:none">
+    <h2>🤵 Mister <span style="color:var(--mut);font-weight:400;font-size:.85rem" id="hintB"></span></h2>
+    <div class="grid" id="boys"></div>
+    <h2>🤵‍♀️ Miss <span style="color:var(--mut);font-weight:400;font-size:.85rem" id="hintG"></span></h2>
+    <div class="grid" id="girls"></div>
+  </div>
+</div>
+<div class="bar" id="bar" style="display:none"><div class="in">
+  <div id="pick" style="font-size:.85rem;color:var(--mut)">—</div>
+  <button id="voteBtn" disabled>Votează</button>
+</div></div>
+<script>
+// device token triple-store: cookie (server, httpOnly) + localStorage + IndexedDB
+(function(){
+  var t = null;
+  try{ t = localStorage.getItem('mm_device'); }catch(e){}
+  if(!t){ t = (crypto.randomUUID?crypto.randomUUID():'dev-'+Date.now()+'-'+Math.random()); try{localStorage.setItem('mm_device',t);}catch(e){} }
+  try{
+    var db; var rq = indexedDB.open('mm',1);
+    rq.onupgradeneeded = function(){ rq.result.createObjectStore('k'); };
+    rq.onsuccess = function(){ try{ var tx=rq.result.transaction('k','readwrite'); tx.objectStore('k').put(t,'device'); }catch(e){} };
+  }catch(e){}
+  window.__mmDevice = t;
+})();
+function showErr(m){var e=document.getElementById('err');e.style.display='block';e.textContent=m;}
+var state=null, boyPick=null, girlPick=null;
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function card(c, side){
+  var d=document.createElement('div');
+  d.className='card'; d.dataset.id=c.id;
+  var img = side==='boy'?c.boy_photo:c.girl_photo;
+  var name = side==='boy'?c.boy_name:c.girl_name;
+  d.innerHTML='<div class="pic"><span class="num">Nr. '+c.number+'</span>'+(img?'<img loading="lazy" src="'+esc(img)+'" alt="">':'<div style="height:150px"></div>')+'</div><div class="n">'+esc(name)+'</div><div class="t">'+esc(c.team)+'</div>';
+  d.onclick=function(){
+    if(side==='boy'){boyPick=c.id;}else{girlPick=c.id;}
+    paint();
+  };
+  return d;
+}
+function paint(){
+  document.querySelectorAll('#boys .card').forEach(function(el){el.classList.toggle('sel-mister',+el.dataset.id===boyPick);});
+  document.querySelectorAll('#girls .card').forEach(function(el){el.classList.toggle('sel-miss',+el.dataset.id===girlPick);});
+  var b=document.getElementById('voteBtn');
+  b.disabled=!(boyPick&&girlPick);
+  var bn=state?state.couples.find(function(c){return c.id===boyPick;}):null;
+  var gn=state?state.couples.find(function(c){return c.id===girlPick;}):null;
+  document.getElementById('pick').textContent=(bn?bn.boy_name:'—')+' + '+(gn?gn.girl_name:'—');
+}
+async function load(){
+  if(localStorage.getItem('mm_voted')==='1'){location.replace('/thanks');return;}
+  var r=await fetch('/api/state',{headers:{'X-Device-Token':window.__mmDevice||''}});
+  state=await r.json();
+  if(!state.voting_open){
+    document.getElementById('msg').style.display='block';
+    document.getElementById('msg').textContent='🕸️ Votarea e închisă. Mulțumim!';
+    return;
+  }
+  document.getElementById('form').style.display='block';
+  document.getElementById('bar').style.display='block';
+  var bb=document.getElementById('boys'), gg=document.getElementById('girls');
+  state.couples.forEach(function(c){bb.appendChild(card(c,'boy'));gg.appendChild(card(c,'girl'));});
+  paint();
+}
+document.getElementById('voteBtn').onclick=async function(){
+  var b=this; b.disabled=true;
+  try{
+    var r=await fetch('/api/vote',{method:'POST',headers:{'Content-Type':'application/json','X-Device-Token':window.__mmDevice||''},body:JSON.stringify({boy_couple_id:boyPick,girl_couple_id:girlPick,device_token:window.__mmDevice})});
+    var j=await r.json().catch(function(){return{};});
+    if(r.status===409){try{localStorage.setItem('mm_voted','1');}catch(e){} location.replace('/thanks');return;}
+    if(!r.ok){showErr(j.error||'Eroare la vot.');b.disabled=false;return;}
+    try{localStorage.setItem('mm_voted','1');}catch(e){}
+    location.replace('/thanks');
+  }catch(e){showErr('Eroare de rețea.');b.disabled=false;}
+};
+load();
+</script>
+</body>
+</html>

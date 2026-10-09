@@ -1,0 +1,25 @@
+{
+  "name": "miss-mister-voting",
+  "version": "1.0.0",
+  "description": "Voting app for Balul Bobocilor - Miss & Mister",
+  "main": "server.js",
+  "scripts": {
+    "start": "node scripts/seed-photos.mjs && node server.js",
+    "seed": "node scripts/seed-photos.mjs",
+    "test:votes": "node test-votes.mjs"
+  },
+  "dependencies": {
+    "better-sqlite3": "^13.0.3",
+    "cookie-parser": "^1.4.6",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.4.1",
+    "express-session": "^1.18.1",
+    "helmet": "^8.0.0",
+    "multer": "^1.4.5-lts.1",
+    "sharp": "^0.34.2"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

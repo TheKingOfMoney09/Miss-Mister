@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin — Miss &amp; Mister</title>
+<style>
+body{margin:0;background:#14141a;color:#f2efe8;font-family:system-ui,sans-serif}
+.wrap{max-width:760px;margin:0 auto;padding:14px 14px 60px}
+.card{background:#1e1e26;border-radius:12px;padding:12px;margin:10px 0}
+button{padding:10px 14px;border:0;border-radius:10px;font-weight:700;margin:4px 6px 4px 0;cursor:pointer}
+.on{background:#3fae5a;color:#fff}.off{background:#555}.danger{background:#b33131;color:#fff}.gold{background:#e8b64c}
+.bar-row{display:flex;align-items:center;gap:8px;margin:5px 0;font-size:.9rem}
+.bar{height:14px;background:#333;border-radius:7px;flex:1;overflow:hidden}
+.bar>i{display:block;height:100%;background:linear-gradient(90deg,#b76ae0,#e8b64c)}
+input,select{padding:9px;border-radius:8px;border:1px solid #444;background:#111;color:#fff;margin:3px 0;width:100%;box-sizing:border-box}
+label{font-size:.8rem;color:#aaa}
+.dot{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+img.th{width:100%;height:120px;object-fit:cover;border-radius:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>🎛️ Admin</h1>
+<div class="card" id="loginBox">
+  <label>Parola admin</label>
+  <input type="password" id="pw" placeholder="parola">
+  <button class="gold" onclick="login()">Autentificare</button>
+  <div id="loginErr" style="color:#ff8a8a"></div>
+</div>
+<div id="dash" style="display:none">
+  <div class="card">
+    <div><span id="dotV" class="dot"></span><b id="vStatus">—</b> · Total voturi: <b id="total">0</b></div>
+    <div style="color:#aaa;font-size:.85rem" id="reveal">—</div>
+    <div style="color:#aaa;font-size:.85rem">Voturi/min (ultimele 10 min): <span id="pm">—</span></div>
+  </div>
+  <div class="card">
+    <button id="btnVote" class="on" onclick="toggleVoting()">Deschide/Închide votarea</button>
+    <button class="gold" onclick="reveal('miss',1)">Dezvăluie Miss</button>
+    <button class="off" onclick="reveal('miss',0)">Ascunde Miss</button>
+    <button class="gold" onclick="reveal('mister',1)">Dezvăluie Mister</button>
+    <button class="off" onclick="reveal('mister',0)">Ascunde Mister</button>
+    <button class="off" onclick="location.href='/api/admin/export.csv'">Export CSV</button>
+    <button class="danger" onclick="resetVotes()">Reset voturi</button>
+  </div>
+  <div class="card"><h3>🤵 Mister</h3><div id="boys"></div></div>
+  <div class="card"><h3>👑 Miss</h3><div id="girls"></div></div>
+  <div class="card"><h3>✏️ Editează cupluri</h3><div id="couples"></div></div>
+  <div class="card"><button class="off" onclick="logout()">Ieși</button></div>
+</div>
+</div>
+<script>
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+var votingOpen=false;
+async function login(){
+  var r=await fetch('/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:document.getElementById('pw').value})});
+  if(!r.ok){document.getElementById('loginErr').textContent='Parolă greșită.';return;}
+  document.getElementById('loginBox').style.display='none';
+  document.getElementById('dash').style.display='block';
+  startSSE(); loadCouples();
+}
+async function api(u,m,b){
+  var r=await fetch(u,{method:m||'GET',headers:{'Content-Type':'application/json'},body:b?JSON.stringify(b):undefined});
+  if(r.status===401){location.reload();throw 0;}
+  return r.json();
+}
+function row(r){
+  return '<div class="bar-row"><span style="min-width:150px">'+esc(r.name)+' <small>(nr.'+r.number+')</small></span><div class="bar"><i style="width:'+Math.min(100,r.pct)+'%"></i></div><b>'+r.votes+'</b><small>'+r.pct+'%</small></div>';
+}
+function render(s){
+  votingOpen=s.voting_open;
+  document.getElementById('total').textContent=s.total;
+  document.getElementById('vStatus').textContent=s.voting_open?'VOTARE DESCHISĂ':'VOTARE ÎNCHISĂ';
+  document.getElementById('dotV').style.background=s.voting_open?'#3fae5a':'#b33131';
+  document.getElementById('reveal').textContent='Miss: '+(s.miss_revealed?'dezvăluit':'ascuns')+' · Mister: '+(s.mister_revealed?'dezvăluit':'ascuns');
+  document.getElementById('pm').textContent=(s.perMinute||[]).join(' ');
+  document.getElementById('boys').innerHTML=s.boys.map(row).join('');
+  document.getElementById('girls').innerHTML=s.girls.map(row).join('');
+  document.getElementById('btnVote').textContent=s.voting_open?'Închide votarea':'Deschide votarea';
+}
+function startSSE(){
+  api('/api/admin/stats').then(render).catch(function(){});
+  var es=new EventSource('/api/admin/events');
+  es.addEventListener('stats',function(e){render(JSON.parse(e.data));});
+}
+async function toggleVoting(){render(await api('/api/admin/voting','POST',{open:!votingOpen}));var s=await api('/api/admin/stats');render(s);}
+async function reveal(w,v){await api('/api/admin/reveal','POST',{which:w,value:v});var s=await api('/api/admin/stats');render(s);}
+async function resetVotes(){
+  var c=prompt('Sigur ștergi TOATE voturile? Scrie RESET pentru confirmare:');
+  if(c!=='RESET')return;
+  await api('/api/admin/reset','POST',{confirm:'RESET'});
+  var s=await api('/api/admin/stats');render(s);
+}
+async function logout(){await fetch('/api/admin/logout',{method:'POST'});location.reload();}
+async function loadCouples(){
+  var cs=await api('/api/admin/couples');
+  document.getElementById('couples').innerHTML=cs.map(function(c){
+    return '<div class="card" style="background:#14141c">Nr.'+c.number+' — '+esc(c.team)+
+    '<div class="grid2"><div><img class="th" src="'+esc(c.boy_photo)+'"><label>Băiat</label><input id="b'+c.id+'" value="'+esc(c.boy_name)+'"></div>'+
+    '<div><img class="th" src="'+esc(c.girl_photo)+'"><label>Fată</label><input id="g'+c.id+'" value="'+esc(c.girl_name)+'"></div></div>'+
+    '<label>Echipă</label><input id="t'+c.id+'" value="'+esc(c.team)+'">'+
+    '<button class="gold" onclick="saveC('+c.id+')">Salvează</button> '+
+    '<label>Băiat poză nouă</label><input type="file" id="fb'+c.id+'" accept="image/*"> <button onclick="upPhoto('+c.id+',\'boy\')">Încarcă băiat</button>'+
+    '<label>Fată poză nouă</label><input type="file" id="fg'+c.id+'" accept="image/*"> <button onclick="upPhoto('+c.id+',\'girl\')">Încarcă fată</button></div>';
+  }).join('');
+}
+async function saveC(id){
+  await api('/api/admin/couples/'+id,'PUT',{boy_name:document.getElementById('b'+id).value,girl_name:document.getElementById('g'+id).value,team:document.getElementById('t'+id).value});
+  alert('Salvat.');
+}
+async function upPhoto(id,side){
+  var f=document.getElementById((side==='boy'?'fb':'fg')+id).files[0];
+  if(!f){alert('Alege un fișier.');return;}
+  var fd=new FormData();fd.append('photo',f);fd.append('side',side);
+  var r=await fetch('/api/admin/couples/'+id+'/photo',{method:'POST',body:fd});
+  if(!r.ok){alert('Eroare la încărcare.');return;}
+  loadCouples();
+}
+</script>
+</body>
+</html>
