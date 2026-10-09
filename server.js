@@ -216,6 +216,13 @@ app.post('/api/admin/reveal', requireAdmin, (req, res) => {
   res.json({ ok: true });
 });
 
+app.post('/api/admin/reveal-both', requireAdmin, (req, res) => {
+  const value = req.body && (req.body.value === true || req.body.value === 1 || req.body.value === '1') ? 1 : 0;
+  db.prepare('UPDATE settings SET miss_revealed = ?, mister_revealed = ? WHERE id = 1').run(value, value);
+  broadcastAll();
+  res.json({ ok: true, value: !!value });
+});
+
 app.post('/api/admin/reset', requireAdmin, (req, res) => {
   if (!req.body || req.body.confirm !== 'RESET') return res.status(400).json({ error: 'Confirmă cu RESET.' });
   db.prepare('DELETE FROM votes').run();

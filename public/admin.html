@@ -37,10 +37,8 @@ img.th{width:100%;height:120px;object-fit:cover;border-radius:8px}
   </div>
   <div class="card">
     <button id="btnVote" class="on" onclick="toggleVoting()">Deschide/Închide votarea</button>
-    <button class="gold" onclick="reveal('miss',1)">Dezvăluie Miss</button>
-    <button class="off" onclick="reveal('miss',0)">Ascunde Miss</button>
-    <button class="gold" onclick="reveal('mister',1)">Dezvăluie Mister</button>
-    <button class="off" onclick="reveal('mister',0)">Ascunde Mister</button>
+    <button class="gold" onclick="revealBoth(1)">🏆 Dezvăluie câștigătorii</button>
+    <button class="off" onclick="revealBoth(0)">Ascunde câștigătorii</button>
     <button class="off" onclick="location.href='/api/admin/export.csv'">Export CSV</button>
     <button class="danger" onclick="resetVotes()">Reset voturi</button>
   </div>
@@ -86,6 +84,7 @@ function startSSE(){
 }
 async function toggleVoting(){render(await api('/api/admin/voting','POST',{open:!votingOpen}));var s=await api('/api/admin/stats');render(s);}
 async function reveal(w,v){await api('/api/admin/reveal','POST',{which:w,value:v});var s=await api('/api/admin/stats');render(s);}
+async function revealBoth(v){await api('/api/admin/reveal-both','POST',{value:v});var s=await api('/api/admin/stats');render(s);}
 async function resetVotes(){
   var c=prompt('Sigur ștergi TOATE voturile? Scrie RESET pentru confirmare:');
   if(c!=='RESET')return;

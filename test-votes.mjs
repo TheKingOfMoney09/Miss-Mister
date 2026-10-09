@@ -87,6 +87,14 @@ await A('POST', '/api/admin/reveal', { which: 'miss', value: 1 });
 const res3 = await req('GET', '/api/results');
 ok('both revealed', res3.json && Array.isArray(res3.json.winners.miss) && Array.isArray(res3.json.winners.mister));
 
+// 7b. combined reveal endpoint (single button in admin)
+await A('POST', '/api/admin/reveal-both', { value: 0 });
+const res4 = await req('GET', '/api/results');
+ok('reveal-both hide', res4.json && res4.json.winners.miss === null && res4.json.winners.mister === null);
+await A('POST', '/api/admin/reveal-both', { value: 1 });
+const res5 = await req('GET', '/api/results');
+ok('reveal-both show', res5.json && Array.isArray(res5.json.winners.miss) && Array.isArray(res5.json.winners.mister));
+
 // 8. SSE public emits state (read first event)
 {
   const ctrl = new AbortController();

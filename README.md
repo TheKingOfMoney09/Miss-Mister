@@ -56,7 +56,7 @@ Scriptul curăță la final (ascunde dezvăluirile, șterge voturile) — baza r
 
 1. **Deschide votarea** → publicul votează.
 2. **Închide votarea** când se termină.
-3. **Dezvăluie Mister** / **Dezvăluie Miss** independent, când anunți câștigătorii (proiectorul se actualizează live).
+3. **🏆 Dezvăluie câștigătorii** — Miss și Mister deodată (proiectorul se actualizează live).
 4. **Export CSV** pentru evidență.
 
 ## Note tehnice
