@@ -44,6 +44,9 @@ img.th{width:100%;height:120px;object-fit:cover;border-radius:8px}
   </div>
   <div class="card"><h3>🤵 Mister</h3><div id="boys"></div></div>
   <div class="card"><h3>👑 Miss</h3><div id="girls"></div></div>
+  <div class="card"><h3>🗳️ Voturi recente <button class="off" style="padding:6px 10px" onclick="loadVotes()">Reîmprospătează</button></h3>
+    <div style="color:#aaa;font-size:.82rem;margin-bottom:6px">Șterge un vot ca dispozitivul respectiv să poată vota din nou („uită cine a votat").</div>
+    <div id="votes"></div></div>
   <div class="card"><h3>✏️ Editează cupluri</h3><div id="couples"></div></div>
   <div class="card"><button class="off" onclick="logout()">Ieși</button></div>
 </div>
@@ -79,17 +82,33 @@ function render(s){
 }
 function startSSE(){
   api('/api/admin/stats').then(render).catch(function(){});
+  loadVotes();
   var es=new EventSource('/api/admin/events');
-  es.addEventListener('stats',function(e){render(JSON.parse(e.data));});
+  es.addEventListener('stats',function(e){render(JSON.parse(e.data));throttledVotes();});
 }
-async function toggleVoting(){render(await api('/api/admin/voting','POST',{open:!votingOpen}));var s=await api('/api/admin/stats');render(s);}
+var lastVotesLoad=0;
+function throttledVotes(){var n=Date.now();if(n-lastVotesLoad>5000){lastVotesLoad=n;loadVotes();}}
+async function loadVotes(){
+  lastVotesLoad=Date.now();
+  var vs=await api('/api/admin/votes').catch(function(){return[];});
+  document.getElementById('votes').innerHTML=vs.length?vs.map(function(v){
+    var t=new Date(v.created_at);var hh=('0'+t.getHours()).slice(-2),mm=('0'+t.getMinutes()).slice(-2);
+    return '<div class="bar-row"><span style="min-width:0;flex:1">'+esc(v.boy_name)+' (nr.'+v.boy_number+') + '+esc(v.girl_name)+' (nr.'+v.girl_number+') <small>· '+esc(v.device_short)+'… · '+hh+':'+mm+'</small></span><button class="danger" style="padding:6px 10px" onclick="forgetVote('+v.id+')">Uită</button></div>';
+  }).join(''):'<div style="color:#aaa">Niciun vot încă.</div>';
+}
+async function forgetVote(id){
+  if(!confirm('Uiți acest vot? Dispozitivul va putea vota din nou.'))return;
+  await api('/api/admin/votes/'+id,'DELETE');
+  var s=await api('/api/admin/stats');render(s);loadVotes();
+}
+async function toggleVoting(){render(await api('/api/admin/voting','POST',{open:!votingOpen}));var s=await api('/api/admin/stats');render(s);loadVotes();}
 async function reveal(w,v){await api('/api/admin/reveal','POST',{which:w,value:v});var s=await api('/api/admin/stats');render(s);}
 async function revealBoth(v){await api('/api/admin/reveal-both','POST',{value:v});var s=await api('/api/admin/stats');render(s);}
 async function resetVotes(){
   var c=prompt('Sigur ștergi TOATE voturile? Scrie RESET pentru confirmare:');
   if(c!=='RESET')return;
   await api('/api/admin/reset','POST',{confirm:'RESET'});
-  var s=await api('/api/admin/stats');render(s);
+  var s=await api('/api/admin/stats');render(s);loadVotes();
 }
 async function logout(){await fetch('/api/admin/logout',{method:'POST'});location.reload();}
 async function loadCouples(){

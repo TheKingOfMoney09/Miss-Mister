@@ -165,6 +165,13 @@ app.post('/api/vote', voteLimiter, (req, res) => {
   res.json({ ok: true });
 });
 
+// Has THIS device voted? Server is source of truth (lets admin "forget"
+// a device so it can revote even though its localStorage still says voted).
+app.get('/api/me', (req, res) => {
+  const row = db.prepare('SELECT id FROM votes WHERE device_token = ?').get(req.deviceToken);
+  res.json({ voted: !!row, device_token: req.deviceToken });
+});
+
 // Public SSE: state + reveal changes only (never counts)
 app.get('/api/events', (req, res) => {
   res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', Connection: 'keep-alive' });
@@ -285,8 +292,31 @@ app.post('/api/admin/couples/:id/photo', requireAdmin, upload.single('photo'), a
   res.json({ ok: true, url: '/uploads/' + fname });
 });
 
+// Recent votes (admin only): lets admin "forget" one device so it can revote.
+// Device tokens are shown truncated — full tokens never leave the server.
+app.get('/api/admin/votes', requireAdmin, (req, res) => {
+  const rows = db
+    .prepare(
+      `SELECT v.id, v.created_at,
+              substr(v.device_token, 1, 8) AS device_short,
+              cb.number AS boy_number, cb.boy_name, cg.number AS girl_number, cg.girl_name
+       FROM votes v JOIN couples cb ON cb.id = v.boy_couple_id JOIN couples cg ON cg.id = v.girl_couple_id
+       ORDER BY v.id DESC LIMIT 100`
+    )
+    .all();
+  res.json(rows);
+});
+
+// Forget ONE vote -> that device can vote again.
+app.delete('/api/admin/votes/:id', requireAdmin, (req, res) => {
+  const id = Number(req.params.id);
+  const info = db.prepare('DELETE FROM votes WHERE id = ?').run(id);
+  if (!info.changes) return res.status(404).json({ error: 'Vot inexistent.' });
+  broadcastAll();
+  res.json({ ok: true });
+});
+
 app.get('/api/admin/events', requireAdmin, (req, res) => {
-  // NOTE: SSE upgrades don't carry session reliably in all setups; also accept ?token check via session cookie only.
   res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', Connection: 'keep-alive' });
   adminClients.add(res);
   sseSend(res, 'stats', getStats());

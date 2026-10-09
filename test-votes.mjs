@@ -117,6 +117,29 @@ ok('reveal-both show', res5.json && Array.isArray(res5.json.winners.miss) && Arr
   ok('CSV export 200 rows', r.status === 200 && t.split('\n').length >= 200, 'lines=' + t.split('\n').length);
 }
 
+// 9b. forget one vote -> same device can vote again (voting still open here)
+const reToken = randomUUID();
+const v1 = await req('POST', '/api/vote', { body: { boy_couple_id: couples[1].id, girl_couple_id: couples[2].id, device_token: reToken }, headers: { 'X-Device-Token': reToken } });
+ok('revote setup vote accepted', v1.status === 200, 'status=' + v1.status);
+const me1 = await req('GET', '/api/me', { headers: { 'X-Device-Token': reToken } });
+ok('/api/me says voted', me1.json && me1.json.voted === true);
+const unauth = await req('GET', '/api/admin/votes');
+ok('admin votes list needs auth', unauth.status === 401, 'status=' + unauth.status);
+const vl = await A('GET', '/api/admin/votes');
+const entry = vl.json && vl.json.find((v) => reToken.startsWith(v.device_short));
+ok('vote listed for admin', !!entry);
+ok('no full device token leaked', JSON.stringify(vl.json).indexOf(reToken) === -1);
+if (entry) {
+  const del = await A('DELETE', '/api/admin/votes/' + entry.id);
+  ok('forget vote 200', del.status === 200, 'status=' + del.status);
+  const me2 = await req('GET', '/api/me', { headers: { 'X-Device-Token': reToken } });
+  ok('/api/me says not voted after forget', me2.json && me2.json.voted === false);
+  const v2 = await req('POST', '/api/vote', { body: { boy_couple_id: couples[1].id, girl_couple_id: couples[2].id, device_token: reToken }, headers: { 'X-Device-Token': reToken } });
+  ok('same device can revote after forget', v2.status === 200, 'status=' + v2.status);
+  const del2 = await A('DELETE', '/api/admin/votes/99999999');
+  ok('forget missing vote 404', del2.status === 404, 'status=' + del2.status);
+}
+
 // 10. close voting -> 403
 await A('POST', '/api/admin/voting', { open: false });
 const closed = await req('POST', '/api/vote', { body: { boy_couple_id: couples[0].id, girl_couple_id: couples[0].id, device_token: randomUUID() } });

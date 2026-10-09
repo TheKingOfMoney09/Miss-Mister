@@ -59,6 +59,11 @@ Scriptul curăță la final (ascunde dezvăluirile, șterge voturile) — baza r
 3. **🏆 Dezvăluie câștigătorii** — Miss și Mister deodată (proiectorul se actualizează live).
 4. **Export CSV** pentru evidență.
 
+### Permite revotarea („uită cine a votat")
+
+- **Un singur dispozitiv:** în `/admin`, secțiunea **Voturi recente** → **Uită** lângă votul respectiv. Votul se șterge, iar telefonul poate vota din nou (pagina de vot întreabă serverul, deci nu trebuie șters nimic de pe telefon).
+- **Toată sala:** **Reset voturi** (confirmă cu RESET) — șterge toate voturile.
+
 ## Note tehnice
 
 - SQLite (`data.sqlite`), un vot per `device_token` (UNIQUE), IP-urile doar ca hash SHA256 + salt, cap soft 150 voturi / IP / oră (WiFi comun în sală).

@@ -89,7 +89,13 @@ function paint(){
   document.getElementById('pick').innerHTML='🤵 <b class="b">'+esc(bn?bn.boy_name:'—')+'</b> + 👑 <b class="g">'+esc(gn?gn.girl_name:'—')+'</b>';
 }
 async function load(){
-  try{ if(localStorage.getItem('mm_voted')==='1'){location.replace('/thanks');return;} }catch(e){}
+  // Server is source of truth: if admin "forgot" this device, let it vote again.
+  try{
+    var me=await fetch('/api/me',{headers:{'X-Device-Token':window.__mmDevice||''}});
+    var mj=await me.json();
+    if(mj && mj.voted){ try{localStorage.setItem('mm_voted','1');}catch(e){} location.replace('/thanks'); return; }
+    try{localStorage.removeItem('mm_voted');}catch(e){}
+  }catch(e){}
   var r=await fetch('/api/state',{headers:{'X-Device-Token':window.__mmDevice||''}});
   state=await r.json();
   if(!state.voting_open){
