@@ -124,6 +124,8 @@ function startSSE(){
   loadVotes(); loadProjector();
   var es=new EventSource('/api/admin/events');
   es.addEventListener('stats',function(e){render(JSON.parse(e.data));throttledVotes();});
+  // Safety net: if the live stream ever stalls, polling keeps numbers fresh.
+  setInterval(function(){ api('/api/admin/stats').then(render).catch(function(){}); }, 12000);
 }
 async function loadProjector(){
   var r=await fetch('/api/projector'); var d=await r.json();

@@ -135,6 +135,29 @@ ok('net helper', net.status === 200 && typeof net.json.port === 'number');
   } catch (e) { ok('SSE public event received', false, String(e)); }
 }
 
+// 8b. a dead SSE client must not break broadcasts to the others
+{
+  const ctrlDead = new AbortController();
+  const dead = await fetch(BASE + '/api/admin/events', { headers: { Cookie: adminCookie }, signal: ctrlDead.signal });
+  const rd = dead.body.getReader();
+  await rd.read(); // initial stats event
+  ctrlDead.abort();
+  try { await rd.cancel(); } catch {}
+  await new Promise((r) => setTimeout(r, 500));
+  const ctrlLive = new AbortController();
+  const live = await fetch(BASE + '/api/admin/events', { headers: { Cookie: adminCookie }, signal: ctrlLive.signal });
+  const rl = live.body.getReader();
+  const dec = new TextDecoder();
+  let buf = '';
+  (async () => { try { for (;;) { const { done, value } = await rl.read(); if (done) break; buf += dec.decode(value); } } catch {} })();
+  await new Promise((r) => setTimeout(r, 800));
+  const tokD = randomUUID();
+  await req('POST', '/api/vote', { body: { boy_couple_id: couples[3].id, girl_couple_id: couples[4].id, device_token: tokD }, headers: { 'X-Device-Token': tokD } });
+  await new Promise((r) => setTimeout(r, 1200));
+  ok('broadcast survives dead client', buf.split('event: stats').length - 1 >= 2, 'events=' + (buf.split('event: stats').length - 1));
+  ctrlLive.abort();
+}
+
 // 9. CSV export
 {
   const r = await fetch(BASE + '/api/admin/export.csv', { headers: { Cookie: adminCookie } });

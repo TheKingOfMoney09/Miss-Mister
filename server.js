@@ -68,18 +68,29 @@ app.use(ensureDeviceToken);
 // ---------- SSE hubs ----------
 const publicClients = new Set();
 const adminClients = new Set();
-function sseSend(res, event, data) {
-  res.write(`event: ${event}\n`);
-  res.write(`data: ${JSON.stringify(data)}\n\n`);
+function dropClient(res) {
+  publicClients.delete(res);
+  adminClients.delete(res);
+  try { res.end(); } catch {}
+}
+// One dead socket must never break the broadcast for everyone else.
+function sseSendSafe(set, res, event, data) {
+  try {
+    if (res.destroyed || res.writableEnded) { dropClient(res); return; }
+    res.write(`event: ${event}\n`);
+    res.write(`data: ${JSON.stringify(data)}\n\n`);
+  } catch {
+    dropClient(res);
+  }
 }
 function broadcastPublic() {
   const s = getSettings();
   const payload = { voting_open: !!s.voting_open, miss_revealed: !!s.miss_revealed, mister_revealed: !!s.mister_revealed, winners: getWinners(), qr_visible: !!s.qr_visible, vote_url: s.vote_url || '', countdown_secs: Math.min(15, Math.max(3, s.countdown_secs || 5)) };
-  for (const res of publicClients) sseSend(res, 'state', payload);
+  for (const res of Array.from(publicClients)) sseSendSafe(publicClients, res, 'state', payload);
 }
 function broadcastAdmin() {
   const payload = getStats();
-  for (const res of adminClients) sseSend(res, 'stats', payload);
+  for (const res of Array.from(adminClients)) sseSendSafe(adminClients, res, 'stats', payload);
 }
 function broadcastAll() {
   broadcastPublic();
@@ -201,7 +212,7 @@ app.get('/api/events', (req, res) => {
   res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', Connection: 'keep-alive' });
   publicClients.add(res);
   const s = getSettings();
-  sseSend(res, 'state', {
+  sseSendSafe(publicClients, res, 'state', {
     voting_open: !!s.voting_open,
     miss_revealed: !!s.miss_revealed,
     mister_revealed: !!s.mister_revealed,
@@ -210,7 +221,7 @@ app.get('/api/events', (req, res) => {
     vote_url: s.vote_url || '',
     countdown_secs: Math.min(15, Math.max(3, s.countdown_secs || 5)),
   });
-  const hb = setInterval(() => res.write(': ping\n\n'), 25000);
+  const hb = setInterval(() => { try { if (!res.destroyed && !res.writableEnded) res.write(': ping\n\n'); } catch {} }, 25000);
   req.on('close', () => {
     clearInterval(hb);
     publicClients.delete(res);
@@ -372,8 +383,8 @@ app.delete('/api/admin/votes/:id', requireAdmin, (req, res) => {
 app.get('/api/admin/events', requireAdmin, (req, res) => {
   res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', Connection: 'keep-alive' });
   adminClients.add(res);
-  sseSend(res, 'stats', getStats());
-  const hb = setInterval(() => res.write(': ping\n\n'), 25000);
+  sseSendSafe(adminClients, res, 'stats', getStats());
+  const hb = setInterval(() => { try { if (!res.destroyed && !res.writableEnded) res.write(': ping\n\n'); } catch {} }, 25000);
   req.on('close', () => {
     clearInterval(hb);
     adminClients.delete(res);
