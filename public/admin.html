@@ -68,6 +68,19 @@ h1.page{font-family:var(--font-display);font-size:1.7rem;margin:14px 0 2px}
   </div>
   <div class="card"><h3>🤵 Mister</h3><div id="boys"></div></div>
   <div class="card"><h3>👑 Miss</h3><div id="girls"></div></div>
+  <div class="card"><h3>📽️ Proiector <a href="/projector" target="_blank" style="color:var(--gold);font-size:.8rem">deschide ↗</a></h3>
+    <label class="flabel">Link vot (URL-ul din codul QR — IP-ul laptopului în WiFi-ul sălii)</label>
+    <input type="text" id="voteUrl" placeholder="http://192.168.1.50:3000/">
+    <div style="margin-top:8px">
+      <button class="off" onclick="suggestUrl()">Detectează IP-ul meu</button>
+      <button class="gold" onclick="saveProjector()">Salvează + arată QR pe proiector</button>
+      <button class="off" onclick="hideQR()">Ascunde QR</button>
+    </div>
+    <div style="display:flex;gap:10px;align-items:end;margin-top:8px;flex-wrap:wrap">
+      <div><label class="flabel">Countdown (secunde)</label><input type="text" id="cdSecs" value="5" style="width:90px"></div>
+      <div class="mut" style="font-size:.82rem" id="qrState">—</div>
+    </div>
+  </div>
   <div class="card"><h3>🗳️ Voturi recente <button class="off" style="padding:6px 12px;font-size:.78rem" onclick="loadVotes()">Reîmprospătează</button></h3>
     <div class="mut" style="font-size:.82rem;margin-bottom:8px">Șterge un vot ca dispozitivul respectiv să poată vota din nou („uită cine a votat").</div>
     <div id="votes"></div></div>
@@ -108,9 +121,29 @@ function render(s){
 }
 function startSSE(){
   api('/api/admin/stats').then(render).catch(function(){});
-  loadVotes();
+  loadVotes(); loadProjector();
   var es=new EventSource('/api/admin/events');
   es.addEventListener('stats',function(e){render(JSON.parse(e.data));throttledVotes();});
+}
+async function loadProjector(){
+  var r=await fetch('/api/projector'); var d=await r.json();
+  document.getElementById('voteUrl').value=d.vote_url||'';
+  document.getElementById('cdSecs').value=d.countdown_secs||5;
+  document.getElementById('qrState').textContent=d.qr_visible?('QR vizibil → '+d.vote_url):'QR ascuns';
+}
+async function suggestUrl(){
+  var n=await api('/api/admin/net');
+  if(n.guessUrl) document.getElementById('voteUrl').value=n.guessUrl;
+  else alert('Nu am găsit un IP de rețea.');
+}
+async function saveProjector(){
+  var r=await api('/api/admin/projector','POST',{qr_visible:1,vote_url:document.getElementById('voteUrl').value,countdown_secs:parseInt(document.getElementById('cdSecs').value,10)});
+  if(r && r.error){alert(r.error);return;}
+  loadProjector();
+}
+async function hideQR(){
+  await api('/api/admin/projector','POST',{qr_visible:0,vote_url:document.getElementById('voteUrl').value,countdown_secs:parseInt(document.getElementById('cdSecs').value,10)});
+  loadProjector();
 }
 var lastVotesLoad=0;
 function throttledVotes(){var n=Date.now();if(n-lastVotesLoad>5000){lastVotesLoad=n;loadVotes();}}

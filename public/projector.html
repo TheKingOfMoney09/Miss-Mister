@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#08080d">
+<title>Proiector — Miss &amp; Mister</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📽️</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
+<style>
+body{
+  background:
+    radial-gradient(1100px 500px at 50% -140px, rgba(233,185,73,.20), transparent 62%),
+    radial-gradient(800px 600px at 12% 110%, rgba(183,106,224,.12), transparent 60%),
+    radial-gradient(800px 600px at 88% 110%, rgba(90,169,230,.10), transparent 60%),
+    linear-gradient(#0d0d15,#060609);
+}
+.wrap{max-width:1100px;padding:30px 22px 60px}
+.status{font-family:var(--font-display);font-size:clamp(1.6rem,5vw,2.8rem);color:var(--mut);margin:10vh 0;text-align:center}
+/* QR hero */
+.qr-hero{text-align:center;margin:3vh auto;max-width:640px}
+.qr-title{font-size:clamp(1.3rem,4vw,2.2rem);font-weight:800;letter-spacing:.3em;text-transform:uppercase;color:var(--gold-hi);text-shadow:0 0 30px rgba(233,185,73,.35)}
+.qr-frame{display:inline-block;margin-top:22px;padding:18px;border-radius:24px;background:#fff;
+  box-shadow:0 0 80px rgba(233,185,73,.35),0 30px 80px rgba(0,0,0,.6);
+  animation:qrIn .7s cubic-bezier(.2,1.2,.35,1)}
+@keyframes qrIn{0%{transform:scale(.7);opacity:0}100%{transform:scale(1);opacity:1}}
+.qr-frame img{display:block;width:min(46vh,64vw,380px);height:min(46vh,64vw,380px)}
+.qr-url{margin-top:16px;color:var(--mut);font-size:clamp(.9rem,2.4vw,1.15rem);letter-spacing:.06em}
+/* countdown */
+.count-box{text-align:center;margin:8vh 0}
+.count-label{letter-spacing:.4em;font-size:clamp(.8rem,2.4vw,1.1rem);color:var(--gold);text-transform:uppercase}
+.count-num{
+  font-family:var(--font-display);font-weight:800;line-height:1;
+  font-size:clamp(7rem,30vh,15rem);
+  background:linear-gradient(175deg,#fff6dd,var(--gold-hi) 40%,var(--gold) 62%,#8a6410);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 0 50px rgba(233,185,73,.4));
+}
+.count-num.zoom{animation:zoom 1s ease}
+@keyframes zoom{0%{transform:scale(1.6);opacity:0}25%{opacity:1}100%{transform:scale(1);opacity:1}}
+/* winners (same gala look as /results) */
+h2.cat{font-family:var(--font-display);font-size:clamp(1.7rem,5vw,2.6rem);margin:30px 0 6px;text-align:center;
+  background:linear-gradient(175deg,#fff6dd,var(--gold-hi) 40%,var(--gold) 62%,#8a6410);
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.cat-sub{text-align:center;color:var(--mut);letter-spacing:.4em;font-size:.72rem;text-transform:uppercase;margin-bottom:20px}
+.crowns{display:flex;gap:26px;justify-content:center;flex-wrap:wrap}
+.cats{display:grid;gap:8px 32px;grid-template-columns:1fr}
+@media(min-width:900px){.cats.two{grid-template-columns:1fr 1fr}.cats.two section:first-child{border-right:1px solid var(--line-soft)}}
+.win{width:min(320px,84vw);border-radius:22px;overflow:hidden;position:relative;background:#14141c;border:1px solid var(--line);
+  box-shadow:0 30px 80px rgba(0,0,0,.6),0 0 50px rgba(233,185,73,.14);animation:rise .8s cubic-bezier(.2,1.1,.35,1)}
+@keyframes rise{0%{transform:translateY(46px);opacity:0}100%{transform:none;opacity:1}}
+.win img{width:100%;height:min(380px,52vh);object-fit:cover;display:block}
+.win .shade{position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(0,0,0,.88) 100%)}
+.win .cap{position:absolute;left:0;right:0;bottom:0;padding:18px;text-align:center}
+.win .crown{font-size:2rem;filter:drop-shadow(0 4px 12px rgba(233,185,73,.6))}
+.win .n{font-family:var(--font-display);font-size:1.7rem;font-weight:800;margin-top:4px;text-shadow:0 3px 14px #000}
+.win .t{color:var(--gold-hi);letter-spacing:.22em;font-size:.74rem;text-transform:uppercase;margin-top:6px}
+.confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden}
+.confetti i{position:absolute;top:-4vh;width:9px;height:15px;opacity:.9;animation:fall linear infinite}
+@keyframes fall{to{transform:translateY(112vh) rotate(720deg)}}
+</style>
+</head>
+<body>
+<div class="confetti" id="confetti"></div>
+<div class="wrap">
+  <header class="gala">
+    <div class="over">Balul Bobocilor</div>
+    <h1>Miss &amp; Mister</h1>
+    <div class="rule"><span>✦ ✦ ✦</span></div>
+  </header>
+  <div id="out"><p class="status">Se încarcă…</p></div>
+</div>
+<script>
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+(function(){
+  var box=document.getElementById('confetti'),cols=['#e9b949','#f7dd8b','#b76ae0','#5aa9e6','#fff'];
+  for(var i=0;i<70;i++){var s=document.createElement('i');
+    s.style.left=(Math.random()*100)+'vw';s.style.background=cols[i%cols.length];
+    s.style.animationDuration=(4+Math.random()*5)+'s';s.style.animationDelay=(-Math.random()*8)+'s';
+    if(i%3===0)s.style.borderRadius='50%';
+    box.appendChild(s);}
+})();
+var prevRevealKey = null;   // countdown only on live reveal transition (not on page load)
+var counting = false;
+var lastState = null;
+function keyOf(d){return (d.miss_revealed?'1':'0')+(d.mister_revealed?'1':'0');}
+
+function block(list,emoji){
+  if(!list) return '';
+  return '<div class="crowns">'+list.map(function(w){
+    return '<div class="win">'+(w.photo?'<img src="'+esc(w.photo)+'" alt="">':'')+'<div class="shade"></div><div class="cap"><div class="crown">'+emoji+'</div><div class="n">'+esc(w.name)+'</div><div class="t">Nr. '+w.number+' · '+esc(w.team)+'</div></div></div>';
+  }).join('')+'</div>';
+}
+function winnersHtml(d){
+  var sections='';
+  if(d.mister_revealed) sections+='<section><h2 class="cat">Mister</h2><div class="cat-sub">al serii</div>'+block(d.winners.mister,'🤵')+'</section>';
+  if(d.miss_revealed) sections+='<section><h2 class="cat">Miss</h2><div class="cat-sub">a serii</div>'+block(d.winners.miss,'👑')+'</section>';
+  var two=(d.mister_revealed&&d.miss_revealed)?' two':'';
+  return '<div class="cats'+two+'">'+sections+'</div>';
+}
+function qrHtml(d){
+  return '<div class="qr-hero"><div class="qr-title">Scanează ca să votezi</div>'+
+    '<div class="qr-frame"><img src="/api/qr.png?v='+encodeURIComponent(d.vote_url)+'" alt="Cod QR vot"></div>'+
+    '<div class="qr-url">'+esc(d.vote_url)+'</div></div>';
+}
+function render(d, first){
+  var out=document.getElementById('out');
+  lastState=d;
+  var key=keyOf(d);
+  var revealed=d.miss_revealed||d.mister_revealed;
+  document.getElementById('confetti').style.display=(revealed&&!counting)?'block':'none';
+  if(revealed){
+    if(first || prevRevealKey===key){ out.innerHTML=winnersHtml(d); }
+    else if(!counting){ countdown(d); }
+  } else if(d.voting_open && d.qr_visible && d.vote_url){
+    out.innerHTML=qrHtml(d);
+  } else {
+    out.innerHTML='<p class="status">'+(d.voting_open?'Votarea e în curs… ✦':'Votarea s-a încheiat. ✦')+'</p>';
+  }
+  prevRevealKey=key;
+}
+function countdown(d){
+  counting=true;
+  var myKey=keyOf(d);
+  document.getElementById('confetti').style.display='none';
+  var out=document.getElementById('out');
+  var n=d.countdown_secs||5, i=n;
+  function tick(){
+    if(!lastState || keyOf(lastState)!==myKey){ counting=false; return; } // reveal hidden/changed mid-countdown -> abort
+    if(i<=0){ counting=false; out.innerHTML=winnersHtml(d); document.getElementById('confetti').style.display='block'; return; }
+    out.innerHTML='<div class="count-box"><div class="count-label">Câștigătorii se anunță în</div><div class="count-num zoom">'+i+'</div></div>';
+    i--; setTimeout(tick,1000);
+  }
+  tick();
+}
+async function load(){
+  var r=await fetch('/api/projector'); var d=await r.json();
+  prevRevealKey=keyOf(d);
+  render(d,true);
+}
+load();
+var es=new EventSource('/api/events');
+es.addEventListener('state',function(e){render(JSON.parse(e.data),false);});
+</script>
+</body>
+</html>

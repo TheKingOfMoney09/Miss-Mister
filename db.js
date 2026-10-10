@@ -50,6 +50,11 @@ function init() {
     INSERT OR IGNORE INTO settings (id, voting_open, miss_revealed, mister_revealed)
       VALUES (1, 0, 0, 0);
   `);
+  // lightweight migrations for settings columns
+  const cols = db.prepare('PRAGMA table_info(settings)').all().map((c) => c.name);
+  if (!cols.includes('qr_visible')) db.exec('ALTER TABLE settings ADD COLUMN qr_visible INTEGER NOT NULL DEFAULT 0');
+  if (!cols.includes('vote_url')) db.exec("ALTER TABLE settings ADD COLUMN vote_url TEXT NOT NULL DEFAULT ''");
+  if (!cols.includes('countdown_secs')) db.exec('ALTER TABLE settings ADD COLUMN countdown_secs INTEGER NOT NULL DEFAULT 5');
 
   const count = db.prepare('SELECT COUNT(*) AS c FROM couples').get().c;
   if (count === 0) {
@@ -65,7 +70,21 @@ function init() {
 }
 
 function getSettings() {
-  return db.prepare('SELECT voting_open, miss_revealed, mister_revealed FROM settings WHERE id = 1').get();
+  return db.prepare('SELECT voting_open, miss_revealed, mister_revealed, qr_visible, vote_url, countdown_secs FROM settings WHERE id = 1').get();
+}
+
+// Everything the projector screen needs (never vote counts).
+function getProjector() {
+  const s = getSettings();
+  return {
+    voting_open: !!s.voting_open,
+    miss_revealed: !!s.miss_revealed,
+    mister_revealed: !!s.mister_revealed,
+    qr_visible: !!s.qr_visible,
+    vote_url: s.vote_url || '',
+    countdown_secs: Math.min(15, Math.max(3, s.countdown_secs || 5)),
+    winners: getWinners(),
+  };
 }
 
 function getCouples() {
@@ -123,4 +142,4 @@ function getWinners() {
   return out;
 }
 
-module.exports = { db, init, getSettings, getCouples, getStats, getWinners, SEED_COUPLERS };
+module.exports = { db, init, getSettings, getCouples, getStats, getWinners, getProjector, SEED_COUPLERS };

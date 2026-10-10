@@ -31,7 +31,8 @@ npm start
 Apoi:
 
 - Votare (QR public): `http://<ip-tău>:3000/`
-- Proiector: `http://<ip-tău>:3000/results`
+- Proiector: `http://<ip-tău>:3000/projector` (vezi mai jos)
+- Rezultate simple: `http://<ip-tău>:3000/results`
 - Admin: `http://<ip-tău>:3000/admin`
 
 > Pentru ca telefoanele din sală să ajungă la server, toate trebuie să fie în aceeași rețea WiFi, iar firewall-ul trebuie să permită portul (ex. `PORT=3000`).
@@ -54,9 +55,10 @@ Scriptul curăță la final (ascunde dezvăluirile, șterge voturile) — baza r
 
 ## Flux admin (seara evenimentului)
 
-1. **Deschide votarea** → publicul votează.
-2. **Închide votarea** când se termină.
-3. **🏆 Dezvăluie câștigătorii** — Miss și Mister deodată (proiectorul se actualizează live).
+1. În `/admin`, secțiunea **📽️ Proiector**: apasă **Detectează IP-ul meu**, apoi **Salvează + arată QR** — pe `/projector` apare mare „SCANEAZĂ CA SĂ VOTEZI".
+2. **Deschide votarea** → publicul votează.
+3. **Ascunde QR** (opțional) + **Închide votarea** când se termină.
+4. **🏆 Dezvăluie câștigătorii** — pe proiector rulează un countdown (secunde configurabile), apoi apar Miss și Mister side-by-side, cu confetti.
 4. **Export CSV** pentru evidență.
 
 ### Permite revotarea („uită cine a votat")

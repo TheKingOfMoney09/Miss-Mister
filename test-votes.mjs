@@ -95,6 +95,31 @@ await A('POST', '/api/admin/reveal-both', { value: 1 });
 const res5 = await req('GET', '/api/results');
 ok('reveal-both show', res5.json && Array.isArray(res5.json.winners.miss) && Array.isArray(res5.json.winners.mister));
 
+// 7c. projector config + QR code
+const pj0 = await req('GET', '/api/projector');
+ok('projector defaults', pj0.json && pj0.json.qr_visible === false && pj0.json.countdown_secs === 5 && Array.isArray(pj0.json.winners.miss));
+const unauthPj = await req('POST', '/api/admin/projector', { body: { qr_visible: 1 } });
+ok('projector config needs auth', unauthPj.status === 401, 'status=' + unauthPj.status);
+const badUrl = await A('POST', '/api/admin/projector', { qr_visible: 1, vote_url: 'fara-protocol', countdown_secs: 5 });
+ok('bad vote url rejected', badUrl.status === 400, 'status=' + badUrl.status);
+const setPj = await A('POST', '/api/admin/projector', { qr_visible: 1, vote_url: 'http://192.168.1.50:3000/', countdown_secs: 4 });
+ok('projector config saved', setPj.status === 200 && setPj.json.countdown_secs === 4, JSON.stringify(setPj.json));
+const pj1 = await req('GET', '/api/projector');
+ok('projector reflects config', pj1.json && pj1.json.qr_visible === true && pj1.json.vote_url === 'http://192.168.1.50:3000/' && pj1.json.countdown_secs === 4);
+{
+  const r = await fetch(BASE + '/api/qr.png');
+  const buf = Buffer.from(await r.arrayBuffer());
+  ok('qr.png 200 + PNG', r.status === 200 && r.headers.get('content-type') === 'image/png' && buf[1] === 0x50 && buf[2] === 0x4e && buf[3] === 0x47, 'status=' + r.status);
+}
+const clampPj = await A('POST', '/api/admin/projector', { qr_visible: 0, vote_url: '', countdown_secs: 99 });
+ok('countdown clamped to 15', clampPj.json && clampPj.json.countdown_secs === 15, JSON.stringify(clampPj.json));
+{
+  const r = await fetch(BASE + '/api/qr.png');
+  ok('qr.png 404 without url', r.status === 404, 'status=' + r.status);
+}
+const net = await A('GET', '/api/admin/net');
+ok('net helper', net.status === 200 && typeof net.json.port === 'number');
+
 // 8. SSE public emits state (read first event)
 {
   const ctrl = new AbortController();

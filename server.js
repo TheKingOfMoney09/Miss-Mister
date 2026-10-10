@@ -10,8 +10,10 @@ const session = require('express-session');
 const cookieParser = require('cookie-parser');
 const multer = require('multer');
 const sharp = require('sharp');
+const QRCode = require('qrcode');
+const os = require('os');
 
-const { db, init, getSettings, getCouples, getStats, getWinners } = require('./db');
+const { db, init, getSettings, getCouples, getStats, getWinners, getProjector } = require('./db');
 
 const PORT = parseInt(process.env.PORT || '3000', 10);
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'schimba-ma';
@@ -72,7 +74,7 @@ function sseSend(res, event, data) {
 }
 function broadcastPublic() {
   const s = getSettings();
-  const payload = { voting_open: !!s.voting_open, miss_revealed: !!s.miss_revealed, mister_revealed: !!s.mister_revealed, winners: getWinners() };
+  const payload = { voting_open: !!s.voting_open, miss_revealed: !!s.miss_revealed, mister_revealed: !!s.mister_revealed, winners: getWinners(), qr_visible: !!s.qr_visible, vote_url: s.vote_url || '', countdown_secs: Math.min(15, Math.max(3, s.countdown_secs || 5)) };
   for (const res of publicClients) sseSend(res, 'state', payload);
 }
 function broadcastAdmin() {
@@ -107,6 +109,7 @@ const loginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20, standardHead
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 app.get('/thanks', (req, res) => res.sendFile(path.join(__dirname, 'public', 'thanks.html')));
 app.get('/results', (req, res) => res.sendFile(path.join(__dirname, 'public', 'results.html')));
+app.get('/projector', (req, res) => res.sendFile(path.join(__dirname, 'public', 'projector.html')));
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
 
 // ---------- public API ----------
@@ -130,6 +133,27 @@ app.get('/api/results', (req, res) => {
     mister_revealed: !!s.mister_revealed,
     winners: getWinners(),
   });
+});
+
+// Projector screen state (public, never vote counts).
+app.get('/api/projector', (req, res) => res.json(getProjector()));
+
+// QR code PNG for the vote URL (public). Regenerated only when the URL changes.
+let qrCache = { text: null, png: null };
+app.get('/api/qr.png', async (req, res) => {
+  const s = getSettings();
+  const text = (s.vote_url || '').trim();
+  if (!text) return res.status(404).json({ error: 'URL vot nesetat.' });
+  try {
+    if (qrCache.text !== text) {
+      qrCache = { text, png: await QRCode.toBuffer(text, { width: 640, margin: 2, color: { dark: '#000000', light: '#ffffff' } }) };
+    }
+    res.setHeader('Content-Type', 'image/png');
+    res.setHeader('Cache-Control', 'public, max-age=300');
+    res.send(qrCache.png);
+  } catch (e) {
+    res.status(500).json({ error: 'Eroare QR.' });
+  }
 });
 
 app.post('/api/vote', voteLimiter, (req, res) => {
@@ -182,6 +206,9 @@ app.get('/api/events', (req, res) => {
     miss_revealed: !!s.miss_revealed,
     mister_revealed: !!s.mister_revealed,
     winners: getWinners(),
+    qr_visible: !!s.qr_visible,
+    vote_url: s.vote_url || '',
+    countdown_secs: Math.min(15, Math.max(3, s.countdown_secs || 5)),
   });
   const hb = setInterval(() => res.write(': ping\n\n'), 25000);
   req.on('close', () => {
@@ -290,6 +317,32 @@ app.post('/api/admin/couples/:id/photo', requireAdmin, upload.single('photo'), a
   db.prepare(`UPDATE couples SET ${col} = ? WHERE id = ?`).run('/uploads/' + fname, id);
   broadcastAdmin();
   res.json({ ok: true, url: '/uploads/' + fname });
+});
+
+// Projector screen config (admin): QR visibility + vote URL + countdown length.
+app.post('/api/admin/projector', requireAdmin, (req, res) => {
+  const b = req.body || {};
+  const qr_visible = b.qr_visible === true || b.qr_visible === 1 || b.qr_visible === '1' ? 1 : 0;
+  let vote_url = typeof b.vote_url === 'string' ? b.vote_url.trim().slice(0, 200) : '';
+  if (vote_url && !/^https?:\/\//i.test(vote_url)) return res.status(400).json({ error: 'URL-ul trebuie să înceapă cu http:// sau https://' });
+  let countdown_secs = parseInt(b.countdown_secs, 10);
+  if (!Number.isFinite(countdown_secs)) countdown_secs = 5;
+  countdown_secs = Math.min(15, Math.max(3, countdown_secs));
+  db.prepare('UPDATE settings SET qr_visible = ?, vote_url = ?, countdown_secs = ? WHERE id = 1').run(qr_visible, vote_url, countdown_secs);
+  broadcastAll();
+  res.json({ ok: true, qr_visible: !!qr_visible, vote_url, countdown_secs });
+});
+
+// Suggest the LAN URL voters should use (admin helper for the QR).
+app.get('/api/admin/net', requireAdmin, (req, res) => {
+  let lanIp = '';
+  for (const ifs of Object.values(os.networkInterfaces())) {
+    for (const a of ifs || []) {
+      if (a.family === 'IPv4' && !a.internal) { lanIp = a.address; break; }
+    }
+    if (lanIp) break;
+  }
+  res.json({ lanIp, port: PORT, guessUrl: lanIp ? `http://${lanIp}:${PORT}/` : '' });
 });
 
 // Recent votes (admin only): lets admin "forget" one device so it can revote.
